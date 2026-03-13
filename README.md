@@ -57,3 +57,6 @@ The application allows users to lock and unlock folders on the Desktop, protecti
 ## Installation
 
 Clone the repository:
+
+```bash
+git clone https://github.com/czuameni/golden-vault.git
