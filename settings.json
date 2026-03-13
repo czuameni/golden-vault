@@ -1,0 +1,4 @@
+{
+    "vault_max_size_gb": 5.0,
+    "idle_seconds": 60
+}
