@@ -15,13 +15,11 @@ CHECK_FILE = ".vault_check"
 CHECK_TEXT = b"VAULT_OK"
 
 
-# ===== STAN SEJFU =====
 vault_unlocked = False
 idle_seconds = 60
 idle_job = None
 vault_map = {}
 
-# ===== MULTI VAULT UI =====
 vault_checkboxes = {}
 
 vault_max_size_gb = 5
@@ -32,7 +30,6 @@ if not os.path.exists(BACKUP_DIR):
     os.makedirs(BACKUP_DIR)
 
 
-# ===== SETTINGS SYSTEM =====
 import json
 
 SETTINGS_FILE = "settings.json"
@@ -78,7 +75,6 @@ def save_settings(limit, idle):
         json.dump(settings, f, indent=4)
 
 
-# ===== KLUCZ =====
 def generate_key(password: str) -> bytes:
     password = password.strip()
 
@@ -87,7 +83,6 @@ def generate_key(password: str) -> bytes:
     )
 
 
-# ===== SZYFROWANIE =====
 def encrypt_file(path, fernet):
     with open(path, "rb") as f:
         data = f.read()
@@ -104,7 +99,6 @@ def decrypt_file(path, fernet):
         f.write(fernet.decrypt(data))
 
 
-# ===== SECURE WIPE FILE =====
 import random
 
 def wipe_file(file_path, passes=3):
@@ -135,7 +129,6 @@ def wipe_file(file_path, passes=3):
         print("Wipe error:", e)
 
 
-# ===== PLIK KONTROLNY =====
 def create_check_file(folder, fernet):
     path = os.path.join(folder, CHECK_FILE)
 
@@ -146,7 +139,6 @@ def create_check_file(folder, fernet):
 def verify_password(folder, fernet):
     path = os.path.join(folder, CHECK_FILE)
 
-    # ❌ brak pliku = sejf uszkodzony
     if not os.path.exists(path):
         print("Brak pliku kontrolnego!")
         return False
@@ -155,7 +147,6 @@ def verify_password(folder, fernet):
         with open(path, "rb") as f:
             data = f.read()
 
-        # ❌ pusty plik = błąd
         if not data:
             print("Pusty plik kontrolny!")
             return False
@@ -167,7 +158,6 @@ def verify_password(folder, fernet):
         return False
 
 
-# ===== SPRAWDZENIE CZY FOLDER ZAMKNIĘTY =====
 def is_folder_locked(folder, fernet):
     path = os.path.join(folder, CHECK_FILE)
 
@@ -204,7 +194,6 @@ def extract_vault_name(display_name):
     return display_name.rsplit(" ", 1)[0]
 
 
-# ===== LOG SYSTEM =====
 from datetime import datetime
 
 LOG_FILE = "vault_log.txt"
@@ -225,7 +214,6 @@ def write_log(operation, vault_name, status):
         print("Log write error:", e)
 
 
-# ===== BACKUP SYSTEM =====
 def backup_vault():
     display_name = vault_combo.get()
 
@@ -247,7 +235,6 @@ def backup_vault():
         return
 
     try:
-        # timestamp
         now = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         backup_name = f"{vault_name}_{now}"
@@ -256,7 +243,6 @@ def backup_vault():
             backup_name
         )
 
-        # tworzenie ZIP
         shutil.make_archive(
             backup_path,
             'zip',
@@ -279,10 +265,8 @@ def backup_vault():
         )
 
 
-# ===== RESTORE BACKUP =====
 def restore_backup():
 
-    # ===== WYBÓR BACKUP ZIP =====
     zip_path = filedialog.askopenfilename(
         title="Wybierz backup sejfu",
         filetypes=[("ZIP files", "*.zip")]
@@ -291,7 +275,6 @@ def restore_backup():
     if not zip_path:
         return
 
-    # ===== WYBÓR SEJFU DO NADPISANIA =====
     display_name = vault_combo.get()
 
     if not display_name:
@@ -311,7 +294,6 @@ def restore_backup():
         )
         return
 
-    # ===== POTWIERDZENIE =====
     confirm = messagebox.askyesno(
         "Restore backup",
         "Czy na pewno przywrócić backup?\n"
@@ -322,7 +304,6 @@ def restore_backup():
         return
 
     try:
-        # 🧹 Wyczyść sejf
         for item in os.listdir(folder):
             item_path = os.path.join(folder, item)
 
@@ -331,7 +312,6 @@ def restore_backup():
             else:
                 shutil.rmtree(item_path)
 
-        # 📦 Rozpakuj backup
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(folder)
 
@@ -364,7 +344,6 @@ def restore_backup():
         )
 
 
-# ===== LOG VIEWER GUI =====
 def open_log_viewer():
 
     if not os.path.exists(LOG_FILE):
@@ -378,15 +357,12 @@ def open_log_viewer():
     viewer.title("Vault Log Viewer")
     viewer.geometry("700x400")
 
-    # ===== RAMKA =====
     frame = tk.Frame(viewer)
     frame.pack(fill="both", expand=True)
 
-    # ===== SCROLLBAR =====
     scrollbar = tk.Scrollbar(frame)
     scrollbar.pack(side="right", fill="y")
 
-    # ===== TEXT BOX =====
     text_box = tk.Text(
         frame,
         yscrollcommand=scrollbar.set,
@@ -396,7 +372,6 @@ def open_log_viewer():
 
     scrollbar.config(command=text_box.yview)
 
-    # ===== READ LOG =====
     try:
         with open(LOG_FILE, "r", encoding="utf-8") as f:
             content = f.read()
@@ -411,14 +386,12 @@ def open_log_viewer():
         )
 
 
-# ===== SETTINGS GUI =====
 def open_settings():
 
     win = tk.Toplevel(app)
     win.title("Settings")
     win.geometry("300x200")
 
-    # ===== LIMIT =====
     tk.Label(
         win,
         text="Vault size limit (GB):"
@@ -434,7 +407,6 @@ def open_settings():
     )
     limit_entry_gui.pack()
 
-    # ===== IDLE =====
     tk.Label(
         win,
         text="Idle auto-lock (seconds):"
@@ -450,7 +422,6 @@ def open_settings():
     )
     idle_entry_gui.pack()
 
-    # ===== SAVE =====
     def save():
 
         try:
@@ -481,7 +452,6 @@ def open_settings():
     ).pack(pady=15)
 
 
-# ===== CREATE VAULT =====
 def create_vault():
 
     folder = filedialog.askdirectory(
@@ -504,10 +474,8 @@ def create_vault():
         key = generate_key(password)
         fernet = Fernet(key)
 
-        # 🔐 Szyfruj zawartość
         process_folder(folder, "lock", fernet)
 
-        # 📄 Twórz plik kontrolny
         create_check_file(folder, fernet)
 
         write_log(
@@ -532,7 +500,6 @@ def create_vault():
         )
 
 
-# ===== PANEL INFO =====
 def update_vault_info(event=None):
     selected = vault_combo.get()
 
@@ -552,13 +519,11 @@ def update_vault_info(event=None):
 
     fill_percent = get_vault_fill_percent(folder)
 
-    # ===== WARTOŚĆ =====
     vault_fill_bar["value"] = fill_percent
     vault_fill_label.config(
         text=f"Zapełnienie: {fill_percent}%"
     )
 
-    # ===== KOLOR =====
     if fill_percent < 60:
         style_name = "Green.Horizontal.TProgressbar"
 
@@ -570,7 +535,6 @@ def update_vault_info(event=None):
 
     vault_fill_bar.configure(style=style_name)
 
-    # ===== STATUS =====
     status = "OTWARTY 🔓" if os.path.exists(
         os.path.join(folder, ".unlocked")
     ) else "ZAMKNIĘTY 🔒"
@@ -585,7 +549,6 @@ def update_vault_info(event=None):
     info_label.config(text=info_text)
 
 
-# ===== LICZENIE PLIKÓW =====
 def count_files(folder):
     total = 0
 
@@ -644,7 +607,6 @@ def is_vault_over_limit(folder):
 
     max_mb = vault_max_size_gb * 1024
 
-    # +15% narzutu szyfrowania
     encrypted_estimate = size_mb * 1.15
 
     return encrypted_estimate >= max_mb
@@ -670,11 +632,9 @@ def update_vault_limit(event=None):
         )
 
 
-# ===== ALERT ZAPEŁNIENIA =====
 def check_vault_fill_alert(folder):
     percent = get_vault_fill_percent(folder)
 
-    # ⚠️ 80%+
     if percent >= 80 and percent < 95:
         messagebox.showwarning(
             "Uwaga",
@@ -682,7 +642,6 @@ def check_vault_fill_alert(folder):
             f"Obecne zapełnienie: {percent}%"
         )
 
-    # 🚨 95%+
     elif percent >= 95:
         messagebox.showerror(
             "Krytyczne zapełnienie",
@@ -692,7 +651,6 @@ def check_vault_fill_alert(folder):
         )
 
 
-# ===== OPERACJA Z PROGRESEM =====
 def process_folder(folder, mode, fernet):
 
     total_files = count_files(folder)
@@ -733,7 +691,6 @@ def process_folder(folder, mode, fernet):
     return True
 
 
-# ===== SECURE WIPE ENGINE =====
 def secure_wipe_folder(folder):
 
     SYSTEM_FILES = (
@@ -759,9 +716,8 @@ def secure_wipe_folder(folder):
             full_path = os.path.join(root, name)
 
             try:
-                wipe_file(full_path)   # ← FIX NAZWY
+                wipe_file(full_path)
 
-                # 🗑️ usuń plik po nadpisaniu
                 os.remove(full_path)
 
             except Exception as e:
@@ -778,7 +734,6 @@ def secure_wipe_folder(folder):
     return True
 
 
-# ===== SKANOWANIE SEJFÓW =====
 def scan_for_vaults():
 
     global vault_map
@@ -820,7 +775,6 @@ def scan_for_vaults():
     return vault_display
 
 
-# ===== WYBÓR FOLDERU =====
 def choose_folder():
     folder_selected = filedialog.askdirectory()
 
@@ -853,7 +807,6 @@ def idle_lock():
 
         if os.path.isdir(folder) and password:
 
-            # ===== BLOKADA LIMITU =====
             if is_vault_over_limit(folder):
                 messagebox.showwarning(
                     "Limit sejfu",
@@ -892,11 +845,10 @@ def idle_lock():
                 print("Idle auto-lock failed:", e)
 
 
-# ===== BATCH OPERATIONS ENGINE =====
 def batch_lock_unlock(mode):
 
     selected_vaults = [
-        (name, data[1])   # (vault_name, folder_path)
+        (name, data[1])
         for name, data in vault_checkboxes.items()
         if data[0].get()
     ]
@@ -967,7 +919,6 @@ def batch_lock_unlock(mode):
     )
 
 
-# ===== MULTI VAULT PANEL REFRESH =====
 def refresh_multi_vault_panel():
 
     for widget in multi_vault_frame.winfo_children():
@@ -988,11 +939,9 @@ def refresh_multi_vault_panel():
 
         cb.pack(fill="x")
 
-        # 🔗 zapisujemy REALNY PATH
         vault_checkboxes[vault_name] = (var, folder)
 
 
-# ===== GUI FUNKCJE =====
 def lock_folder():
     global vault_unlocked
 
@@ -1005,7 +954,6 @@ def lock_folder():
         messagebox.showerror("Błąd", "Folder nie istnieje!")
         return
 
-    # ===== BLOKADA LIMITU =====
     if is_vault_over_limit(folder):
         messagebox.showerror(
             "Limit sejfu",
@@ -1048,7 +996,6 @@ def unlock_folder():
     folder = vault_map.get(vault_name)
     password = entry_password.get()
 
-    # ❗ GUARD — brak hasła
     if not password:
         messagebox.showerror(
             "Błąd",
@@ -1063,7 +1010,6 @@ def unlock_folder():
     key = generate_key(password)
     fernet = Fernet(key)
 
-    # ===== WERYFIKACJA HASŁA =====
     if not verify_password(folder, fernet):
         messagebox.showerror(
             "Błąd",
@@ -1072,7 +1018,6 @@ def unlock_folder():
         write_log("OPEN", vault_name, "WRONG_PASSWORD")
         return
 
-    # ===== ODSZYFROWANIE =====
     progress["value"] = 0
 
     success = process_folder(folder, "unlock", fernet)
@@ -1110,7 +1055,6 @@ def change_password():
     vault_name = extract_vault_name(display_name)
     folder = vault_map.get(vault_name)
 
-    # ===== GUARD: SEJF MUSI BYĆ ZAMKNIĘTY =====
     unlocked_flag = os.path.join(folder, ".unlocked")
 
     if os.path.exists(unlocked_flag):
@@ -1134,7 +1078,6 @@ def change_password():
     old_key = generate_key(old_password)
     old_fernet = Fernet(old_key)
 
-    # ===== WERYFIKACJA =====
     if not verify_password(folder, old_fernet):
         messagebox.showerror(
             "Błąd",
@@ -1149,7 +1092,6 @@ def change_password():
 
     progress["value"] = 0
 
-    # ===== 1️⃣ PEŁNE ODSZYFROWANIE =====
     for root, dirs, files in os.walk(folder):
         for name in files:
 
@@ -1161,16 +1103,13 @@ def change_password():
             try:
                 decrypt_file(full_path, old_fernet)
             except:
-                # plik już odszyfrowany → ignoruj
                 pass
 
-    # ===== 2️⃣ USUŃ STARY CHECK =====
     check_path = os.path.join(folder, CHECK_FILE)
 
     if os.path.exists(check_path):
         os.remove(check_path)
 
-    # ===== 3️⃣ SZYFRUJ NOWYM =====
     new_key = generate_key(new_password)
     new_fernet = Fernet(new_key)
 
@@ -1189,7 +1128,6 @@ def change_password():
     )
 
 
-# ===== SECURE WIPE GUI =====
 def secure_wipe_vault():
 
     display_name = vault_combo.get()
@@ -1211,7 +1149,6 @@ def secure_wipe_vault():
         )
         return
 
-    # 🚨 PODWÓJNE POTWIERDZENIE
     confirm = messagebox.askyesno(
         "SECURE WIPE",
         "Czy na pewno chcesz TRWALE usunąć dane sejfu?\n\n"
@@ -1318,7 +1255,6 @@ def panic_lock_all():
     app.destroy()
 
 
-# ===== SMART PANIC =====
 def smart_panic():
 
     locked_any = False
@@ -1330,7 +1266,6 @@ def smart_panic():
 
         unlocked_flag = os.path.join(folder, ".unlocked")
 
-        # 👉 tylko otwarte sejfy
         if not os.path.exists(unlocked_flag):
             continue
 
@@ -1390,7 +1325,6 @@ def on_close():
 
         if os.path.isdir(folder) and password:
 
-            # ===== BLOKADA LIMITU =====
             if is_vault_over_limit(folder):
                 print(
                     "Auto-lock przy zamknięciu zablokowany — limit przekroczony"
@@ -1455,7 +1389,6 @@ def update_vault_color(event=None):
     status_label.config(fg=color)
 
 
-# ===== AUTO CLEAN UNLOCKED FLAGS =====
 def clean_unlocked_flags():
 
     desktop = os.path.join(
@@ -1479,14 +1412,11 @@ def clean_unlocked_flags():
             os.remove(flag)
 
 
-# clean_unlocked_flags()
 
 
-# 🔧 LOAD SETTINGS
 load_settings()
 
 
-# ===== OKNO =====
 app = tk.Tk()
 app.title("Golden Vault")
 app.geometry("420x260")
@@ -1500,7 +1430,6 @@ style.theme_use("clam")
 style.configure("Vault.TCombobox", foreground="black")
 
 
-# ===== STYL PASKA ZAPEŁNIENIA =====
 style.configure(
     "Green.Horizontal.TProgressbar",
     troughcolor="white",
@@ -1544,7 +1473,6 @@ vault_fill_label = tk.Label(app, text="Zapełnienie: 0%")
 vault_fill_label.pack()
 
 
-# ===== LIMIT SEJFU =====
 limit_label = tk.Label(app, text="Limit sejfu (GB):")
 limit_label.pack()
 
@@ -1565,7 +1493,6 @@ vault_combo = Combobox(
 vault_combo.pack()
 
 
-# ===== MULTI VAULT PANEL =====
 multi_vault_frame = tk.LabelFrame(
     app,
     text="Batch Operations",
@@ -1581,22 +1508,18 @@ vault_combo.bind("<<ComboboxSelected>>", update_vault_color)
 vault_combo.bind("<<ComboboxSelected>>", update_vault_info)
 
 
-# ===== APPLY SETTINGS TO GUI =====
 limit_entry.delete(0, tk.END)
 limit_entry.insert(0, str(vault_max_size_gb))
 
-# 🔄 PIERWSZE ZAŁADOWANIE SEJFÓW
 app.after(100, refresh_vaults)
 
 
-# ===== LOAD SETTINGS =====
 load_settings()
 
 limit_entry.delete(0, tk.END)
 limit_entry.insert(0, str(vault_max_size_gb))
 
 
-# 🔄 PIERWSZE ZAŁADOWANIE SEJFÓW — po pełnym GUI init
 app.after(100, refresh_vaults)
 
 
@@ -1613,7 +1536,6 @@ entry_new_password = tk.Entry(app, show="*", width=30)
 entry_new_password.pack()
 
 
-# ===== FRAME NA BUTTONY =====
 buttons_frame = tk.Frame(app)
 buttons_frame.pack(pady=5)
 
