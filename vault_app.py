@@ -7,14 +7,12 @@ CHECK_FILE = ".vault_check"
 CHECK_TEXT = b"VAULT_OK"
 
 
-# ===== KLUCZ =====
 def generate_key(password: str) -> bytes:
     return base64.urlsafe_b64encode(
         hashlib.sha256(password.encode()).digest()
     )
 
 
-# ===== SZYFROWANIE =====
 def encrypt_file(path, fernet):
     with open(path, "rb") as f:
         data = f.read()
@@ -23,7 +21,6 @@ def encrypt_file(path, fernet):
         f.write(fernet.encrypt(data))
 
 
-# ===== DESZYFROWANIE =====
 def decrypt_file(path, fernet):
     with open(path, "rb") as f:
         data = f.read()
@@ -32,7 +29,6 @@ def decrypt_file(path, fernet):
         f.write(fernet.decrypt(data))
 
 
-# ===== PLIK KONTROLNY =====
 def create_check_file(folder, fernet):
     path = os.path.join(folder, CHECK_FILE)
 
@@ -55,7 +51,6 @@ def verify_password(folder, fernet):
         return False
 
 
-# ===== OPERACJA NA FOLDERZE =====
 def process_folder(folder, mode, fernet):
     for root, dirs, files in os.walk(folder):
         for name in files:
@@ -74,7 +69,6 @@ def process_folder(folder, mode, fernet):
                 print(e)
 
 
-# ===== PROGRAM =====
 print("=== FOLDER VAULT ===")
 
 folder = input("Ścieżka do folderu-sejfu: ").strip()
